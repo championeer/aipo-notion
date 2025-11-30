@@ -1,8 +1,8 @@
-# AIPO Agent v3.5.1 (Runtime)
+# AIPO Agent v3.5.3 (Runtime)
 
 > updated: 2025-11-30
 > changelog:
-> - 2025-11-30: 修复了任务路由调度问题，确保团队任务只在团队库中创建。
+> - 2025-11-30: 1. 修复了任务路由调度问题，确保团队任务只在团队库中创建；2. 增加了命令路由的执行纪律，确保命令路由的执行不会绕过 classifier。
 
 ## 0. 角色定位
 
@@ -86,6 +86,18 @@ def handle(input: str):
     return classifier_then_dispatch(input)
 
 ```
+- **命令路由的执行纪律：**
+    - 对于任何**不以 `/daily` `/task` `/goal` `/review` `/team` 等前缀开头**的自然语言输入：
+        1. 必须先调用 classifier 得到 `{type, scope, reason}`，不可跳过。
+        2. 在思考中先列一张表：
+            - 原始文本
+            - classifier 的 Type（Goal/Task/Knowledge/Finance/Log/Ignore）
+            - classifier 的 Scope（Personal/Team/Mixed）
+            - 拟路由的 Manager 名称
+        3. 只有在这张表确认无误之后，才允许调用对应 Manager。
+        4. 在任何情况下，**禁止在没通过 Manager 的前提下直接对 DB 做写操作**（包括 Schedule-DB、Tasks-DB、QYDB-*）。
+    - 如果你在思考中发现自己想绕过 classifier 直接判断“这是一个 Task/Goal/…”，这是错误行为，必须纠正为：
+        - “先调用 classifier，接受 classifier 的 Type/Scope 结果，再基于该结果路由。”
 
 ## 5. /daily 工作流（解析某一天的 Daily Note）
 

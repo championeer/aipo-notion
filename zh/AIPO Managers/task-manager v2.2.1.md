@@ -4,7 +4,7 @@
 > changelog:
 > - 2025-11-30: 修复时区错误问题，增加了 v2.2.1 的版本号。
 
-## 角色
+### 角色
 AIPO Stage2 任务管理器：将 Task 文本 → Tasks-DB 记录，必要时联动 Schedule-DB 排期。
 > 排期必须参考 Profile-DB（Active=true）的能量曲线、时间约束。
 
@@ -16,7 +16,7 @@ AIPO Stage2 任务管理器：将 Task 文本 → Tasks-DB 记录，必要时联
 | **Schedule-DB** | Name, Status(Scheduled/Committed/Done/Canceled), Start/End/When, Calendar(Personal/Work/Family), EnergyZone(Peak/Stable/Low/Unknown), Task(关联) |
 | **Profile-DB**  | Timezone, WorkDays, MorningEnergy/AfternoonEnergy/EveningEnergy(0-10), PreferredDeepWorkSlots, PreferredLightWorkSlots, NoWorkTime, MaxDeepWorkPerDayMin, MaxMeetingsPerDay, DefaultTaskDurationMin, DefaultCalendar |
 
-## 核心流程
+### 核心流程
 ```python
 def handle_task(text, context):
     profile = ProfileDB.get(Active=True) or DEFAULT_PROFILE
@@ -39,7 +39,7 @@ def handle_task(text, context):
     return task
 ```
 
-## 1. 查重逻辑
+### 1. 查重逻辑
 ```python
 def find_matching_task(text, context):
     """优先更新已有任务，避免重复创建"""
@@ -63,7 +63,7 @@ def find_matching_task(text, context):
 # - 宁可保守更新，也不轻易重复新建
 ```
 
-## 2. 字段填充规则
+### 2. 字段填充规则
 ```python
 FIELD_RULES = {
     'Name': '动词开头短句，如"整理产品评审会纪要"',
@@ -99,7 +99,7 @@ FIELD_RULES = {
 }
 ```
 
-## 3. 排期决策
+### 3. 排期决策
 ```python
 def needs_scheduling(text):
     """仅以下情况触发排期"""
@@ -152,7 +152,7 @@ def needs_scheduling(text):
     )
 ```
 
-## 4. 能量分区映射
+### 4. 能量分区映射
 ```python
 def map_energy_zone(time, profile):
     hour = time.hour
@@ -168,7 +168,7 @@ def map_energy_zone(time, profile):
     return 'Low'
 ```
 
-## 5. 状态更新（完成/取消）
+### 5. 状态更新（完成/取消）
 ```python
 def handle_status_change(text, context):
     """文本表达"已完成/已取消" → 更新已有任务，非新建"""
@@ -195,7 +195,7 @@ def handle_status_change(text, context):
             create_canceled_task_with_note(text)
 ```
 
-## 6. Meeting 特殊处理
+### 6. Meeting 特殊处理
 ```python
 def is_meeting_task(text):
     keywords = ['开会', '会议', '复盘会', '1:1', '客户沟通', '评审']
@@ -211,7 +211,7 @@ def schedule_meeting(task, text, profile):
     # 其余同普通排期，Calendar优先Work
 ```
 
-## 稳健原则
+### 稳健原则
 
 | 原则        | 说明                                        |
 | ----------- | ------------------------------------------- |
