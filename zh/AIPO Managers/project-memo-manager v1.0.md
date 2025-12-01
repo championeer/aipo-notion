@@ -235,31 +235,6 @@ def compress_text(text):
 
 ---
 
-## 与 /daily 工作流的关系（调用方式）
-
-在 AIPO Agent 的 `/daily` 工作流中，在完成基础的 Type/Scope 路由之后，新增一步：
-
-```python
-def daily_workflow(raw_input: str, date=None):
-    # Step 0: 定位 Daily Note（默认今天）
-    note = DailyNotesDB.find(date) or DailyNotesDB.find(today())
-    
-    # Step 1: classifier 拆分文本 → items
-    items = call('classifier', note.content)
-    
-    # Step 2: 现有逻辑：按 Type/Scope 分发给各 Stage2 Manager
-    dispatch_to_managers(note, items)
-    
-    # Step 2.5: 项目备忘录同步（新加）
-    call('project-memo-manager', daily_note=note, items=items)
-    
-    # Step 3: 如有 #review / “日结”，再调用 daily-review-manager
-    if '#review' in raw_input or '日结' in raw_input:
-        call('daily-review-manager', note)
-```
-
----
-
 ## 稳健原则
 
 | 原则     | 说明                                                      |
